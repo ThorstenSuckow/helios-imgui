@@ -69,12 +69,29 @@ export namespace helios::imgui {
             }
         }
 
+        /**
+         * @brief Window entity handle used to resolve the native GLFW window.
+         */
         WindowHandle windowHandle_;
 
+        /**
+         * @brief Platform world that stores the GLFW window-handle component.
+         */
         PlatformWorld& platformWorld_;
 
+        /**
+         * @brief Performs one-time backend initialization.
+         *
+         * Resolves the GLFW window entity, initializes the ImGui GLFW binding,
+         * and initializes the OpenGL renderer backend.
+         *
+         * @return `true` if the backend is initialized and ready; otherwise `false`.
+         */
         bool initialize() noexcept {
 
+            if (initialized_) {
+                return true;
+            }
             auto glfwWindow = platformWorld_.findEntity(windowHandle_);
 
             if (!glfwWindow) {
@@ -85,7 +102,6 @@ export namespace helios::imgui {
             auto glfwComp = glfwWindow->get<GLFWWindowHandleComponent<WindowHandle>>();
 
             if (!glfwComp) {
-                assert(false && "Expected GLFWWindowHandleComponent on window entity");
                 return false;
             }
 
@@ -114,11 +130,12 @@ export namespace helios::imgui {
         ImGuiGlfwOpenGLBackend& operator=(ImGuiGlfwOpenGLBackend&& other) noexcept = delete;
 
         /**
-         * @brief Constructs and initializes the ImGui backend for GLFW+OpenGL.
+         * @brief Constructs the ImGui backend for GLFW+OpenGL.
          *
          * @param window GLFW window handle. Must be valid for the lifetime of this backend.
+         * @param platformWorld Platform world used to resolve the native GLFW window handle.
          *
-         * @throws std::runtime_error if ImGui context already exists or initialization fails.
+         * @throws std::runtime_error if an ImGui context already exists.
          */
         explicit ImGuiGlfwOpenGLBackend(WindowHandle window, PlatformWorld& platformWorld)
             : windowHandle_(window), platformWorld_(platformWorld) {
@@ -140,6 +157,8 @@ export namespace helios::imgui {
          * @brief Renders ImGui draw data using OpenGL.
          *
          * @param drawData Pointer to ImGui draw data.
+         *
+         * @note If the backend is not initialized yet, this call is a no-op.
          */
         void renderDrawData(ImDrawData* drawData) override {
             if (initialized_) {
@@ -149,19 +168,21 @@ export namespace helios::imgui {
 
         /**
          * @brief Starts a new ImGui frame.
+         *
+         * @return `true` if frame setup succeeded; otherwise `false`.
          */
-        void newFrame() override {
+        bool newFrame() override {
 
-            if (!initialized_) {
-                if (!initialize()) {
-                    return;
-                }
+            if (!initialize()) {
+                return false;
             }
 
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
+
+            return true;
         }
 
         /**
