@@ -23,8 +23,14 @@ export namespace helios::imgui {
 
     public:
 
+        /**
+         * @brief Default constructor.
+         */
         ImGuiBackend() = default;
 
+        /**
+         * @brief Virtual destructor for polymorphic backend cleanup.
+         */
         virtual ~ImGuiBackend() = default;
 
         /**
@@ -32,8 +38,10 @@ export namespace helios::imgui {
          *
          * Must be called at the beginning of each frame before any ImGui calls.
          * Typically invokes platform-specific `NewFrame()` implementations.
+         *
+         * @return `true` if frame setup succeeded; otherwise `false`.
          */
-        virtual void newFrame() = 0;
+        virtual bool newFrame() = 0;
 
         /**
          * @brief Renders ImGui draw data to the screen.
@@ -41,6 +49,7 @@ export namespace helios::imgui {
          * Called after `ImGui::Render()` to submit draw commands to the GPU.
          *
          * @param drawData Pointer to ImGui draw data (typically from `ImGui::GetDrawData()`).
+         *                 Implementations may treat `nullptr` as a no-op.
          */
         virtual void renderDrawData(ImDrawData* drawData) = 0;
 
