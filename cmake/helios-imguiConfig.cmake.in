@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(helios-ecs CONFIG)
+find_dependency(helios-engine CONFIG)
+find_dependency(helios-glfw CONFIG)
+
+include("${CMAKE_CURRENT_LIST_DIR}/helios-imguiTargets.cmake")
+
+check_required_components(helios-imgui)
+
