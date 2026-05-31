@@ -120,7 +120,10 @@ export namespace helios::imgui {
          * `ImGui::Render()` and `renderDrawData()`.
          */
         void render() {
-            backend_->newFrame();
+
+            if (!backend_->newFrame()) {
+                return;
+            }
 
             // Create a full-viewport DockSpace so widgets can be docked to window edges
             if (enableDockSpace_) {
