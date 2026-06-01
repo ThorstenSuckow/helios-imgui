@@ -153,10 +153,6 @@ file(GLOB_RECURSE MODULE_INTERFACE_FILES CONFIGURE_DEPENDS
 list(FILTER CPP_FILES EXCLUDE REGEX "/CMakeFiles/|/CMakeTmp/|/cmake_build_|/build/")
 list(FILTER MODULE_INTERFACE_FILES EXCLUDE REGEX "/CMakeFiles/|/CMakeTmp/|/cmake_build_|/build/")
 
-option(HELIOS_IMGUI_ENABLE_LEGACY_CAMERA_WIDGET "Build the legacy CameraWidget module" OFF)
-if(NOT HELIOS_IMGUI_ENABLE_LEGACY_CAMERA_WIDGET)
-    list(FILTER MODULE_INTERFACE_FILES EXCLUDE REGEX "/widgets/CameraWidget\\.ixx$")
-endif()
 
 add_library(helios_imgui STATIC)
 add_library(helios::imgui ALIAS helios_imgui)

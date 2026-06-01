@@ -4,6 +4,7 @@
  */
 export module helios.imgui.widgets;
 
+export import helios.imgui.widgets.CameraWidget;
 export import helios.imgui.widgets.FpsWidget;
 export import helios.imgui.widgets.LogWidget;
 export import helios.imgui.widgets.MainMenuWidget;
