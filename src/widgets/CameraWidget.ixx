@@ -31,6 +31,13 @@ import helios.math.utils;
 using namespace helios::engine::core::components;
 export namespace helios::imgui::widgets {
 
+    /**
+     * @brief ECS-driven ImGui camera editor for viewport-bound cameras.
+     *
+     * @details The widget discovers all viewport entities that expose
+     * `CameraBindingComponent<ViewportHandle>`, lets the user pick one camera,
+     * and edits its camera/look-at ECS components at runtime.
+     */
     class CameraWidget : public ImGuiWidget {
 
         using GameWorld = helios::engine::runtime::world::GameWorld;
@@ -261,8 +268,22 @@ export namespace helios::imgui::widgets {
         }
 
     public:
+        /**
+         * @brief Creates the widget bound to a runtime `GameWorld`.
+         *
+         * @param gameWorld World used for viewport/camera discovery and component edits.
+         */
         explicit CameraWidget(GameWorld& gameWorld) noexcept : gameWorld_(&gameWorld) {}
 
+        /**
+         * @brief Renders the camera editor UI and writes changes into ECS components.
+         *
+         * @details The UI provides:
+         * - viewport/camera selection via `CameraBindingComponent<ViewportHandle>`
+         * - editing for `Position3DComponent`, `TargetPosition3DComponent`, `UpVector3DComponent`
+         * - editing for `PerspectiveCameraComponent`
+         * - reset to the snapshot captured when the current selection became active
+         */
         void draw() override {
             ImGui::SetNextWindowSize(ImVec2(380, 520), ImGuiCond_FirstUseEver);
 
