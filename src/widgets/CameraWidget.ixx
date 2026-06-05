@@ -27,7 +27,9 @@ import helios.engine.spatial.components.UpVector3DComponent;
 
 import helios.math.types;
 import helios.math.utils;
+import helios.engine.core.types.ComponentTypeTags;
 
+using namespace helios::engine::core::types;
 using namespace helios::engine::core::components;
 export namespace helios::imgui::widgets {
 
@@ -46,8 +48,8 @@ export namespace helios::imgui::widgets {
 
         using ViewportCameraBindingComponent = helios::engine::scene::components::CameraBindingComponent<ViewportHandle>;
         using PerspectiveCameraComponent = helios::engine::scene::components::PerspectiveCameraComponent<GameObjectHandle>;
-        using Position3DComponent = helios::engine::spatial::components::Position3DComponent<GameObjectHandle>;
-        using TargetPosition3DComponent = helios::engine::spatial::components::TargetPosition3DComponent<GameObjectHandle>;
+        using Position3DComponent = helios::engine::spatial::components::Position3DComponent<GameObjectHandle, Local>;
+        using TargetPosition3DComponent = helios::engine::spatial::components::TargetPosition3DComponent<GameObjectHandle, World>;
         using UpVector3DComponent = helios::engine::spatial::components::UpVector3DComponent<GameObjectHandle>;
 
         struct ViewportCameraEntry {
