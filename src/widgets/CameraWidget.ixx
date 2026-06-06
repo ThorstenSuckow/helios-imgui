@@ -23,7 +23,6 @@ import helios.engine.scene.components.PerspectiveCameraComponent;
 import helios.engine.scene.components.CameraBindingComponent;
 import helios.engine.spatial.components.Position3DComponent;
 import helios.engine.spatial.components.TargetPosition3DComponent;
-import helios.engine.spatial.components.UpVector3DComponent;
 
 import helios.math.types;
 import helios.math.utils;
@@ -50,7 +49,6 @@ export namespace helios::imgui::widgets {
         using PerspectiveCameraComponent = helios::engine::scene::components::PerspectiveCameraComponent<GameObjectHandle>;
         using Position3DComponent = helios::engine::spatial::components::Position3DComponent<GameObjectHandle, Local>;
         using TargetPosition3DComponent = helios::engine::spatial::components::TargetPosition3DComponent<GameObjectHandle, World>;
-        using UpVector3DComponent = helios::engine::spatial::components::UpVector3DComponent<GameObjectHandle>;
 
         struct ViewportCameraEntry {
             ViewportHandle viewportHandle{};
@@ -202,10 +200,10 @@ export namespace helios::imgui::widgets {
                 snapshot.target = target->value();
             }
 
-            if (const auto* up = entity.template get<UpVector3DComponent>()) {
+           /* if (const auto* up = entity.template get<UpVector3DComponent>()) {
                 snapshot.hasUp = true;
                 snapshot.up = up->value();
-            }
+            }*/
 
             if (const auto* camera = entity.template get<PerspectiveCameraComponent>()) {
                 snapshot.hasPerspective = true;
@@ -228,9 +226,9 @@ export namespace helios::imgui::widgets {
                 tempTarget_ = target->value();
             }
 
-            if (auto* up = entity.template get<UpVector3DComponent>()) {
+            /*if (auto* up = entity.template get<UpVector3DComponent>()) {
                 tempUp_ = up->value();
-            }
+            }*/
 
             if (auto* camera = entity.template get<PerspectiveCameraComponent>()) {
                 tempFovDegrees_ = helios::math::degrees(camera->fovY());
@@ -400,14 +398,14 @@ export namespace helios::imgui::widgets {
                 }
             }
 
-            if (upChanged) {
+          /*  if (upChanged) {
                 auto* up = cameraEntity.template get<UpVector3DComponent>();
                 if (up) {
                     up->setValue(tempUp_);
                 } else {
                     missingUp = true;
                 }
-            }
+            }*/
 
             if (projectionChanged) {
                 missingCamera = !writeProjectionToEntity(cameraEntity);
@@ -436,7 +434,7 @@ export namespace helios::imgui::widgets {
                     }
                 }
 
-                if (resetSnapshot_.hasUp) {
+               /* if (resetSnapshot_.hasUp) {
                     auto* up = cameraEntity.template get<UpVector3DComponent>();
                     if (up) {
                         up->setValue(resetSnapshot_.up);
@@ -444,7 +442,7 @@ export namespace helios::imgui::widgets {
                     } else {
                         missingUp = true;
                     }
-                }
+                }*/
 
                 if (resetSnapshot_.hasPerspective) {
                     auto* perspective = cameraEntity.template get<PerspectiveCameraComponent>();
