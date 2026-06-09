@@ -1,11 +1,12 @@
 /**
  * @file CameraWidget.ixx
- * @brief ImGui widget for editing ECS camera and look-at components.
+ * @brief ImGui widget for editing ECS camera transform and projection components.
  */
 module;
 
 #include <string>
 #include <vector>
+#include <numbers>
 
 #include "imgui.h"
 
@@ -22,7 +23,7 @@ import helios.engine.rendering.viewport.types.ViewportHandle;
 import helios.engine.scene.components.PerspectiveCameraComponent;
 import helios.engine.scene.components.CameraBindingComponent;
 import helios.engine.spatial.components.Position3DComponent;
-import helios.engine.spatial.components.TargetPosition3DComponent;
+import helios.engine.spatial.components.YawPitchRollComponent;
 
 import helios.math.types;
 import helios.math.utils;
@@ -30,6 +31,7 @@ import helios.engine.core.types.ComponentTypeTags;
 
 using namespace helios::engine::core::types;
 using namespace helios::engine::core::components;
+
 export namespace helios::imgui::widgets {
 
     /**
@@ -37,7 +39,7 @@ export namespace helios::imgui::widgets {
      *
      * @details The widget discovers all viewport entities that expose
      * `CameraBindingComponent<ViewportHandle>`, lets the user pick one camera,
-     * and edits its camera/look-at ECS components at runtime.
+     * and edits its transform/projection ECS components at runtime.
      */
     class CameraWidget : public ImGuiWidget {
 
@@ -45,10 +47,17 @@ export namespace helios::imgui::widgets {
         using GameObjectHandle = helios::engine::runtime::world::types::GameObjectHandle;
         using ViewportHandle = helios::engine::rendering::viewport::types::ViewportHandle;
 
-        using ViewportCameraBindingComponent = helios::engine::scene::components::CameraBindingComponent<ViewportHandle>;
-        using PerspectiveCameraComponent = helios::engine::scene::components::PerspectiveCameraComponent<GameObjectHandle>;
-        using Position3DComponent = helios::engine::spatial::components::Position3DComponent<GameObjectHandle, Local>;
-        using TargetPosition3DComponent = helios::engine::spatial::components::TargetPosition3DComponent<GameObjectHandle, World>;
+        using ViewportCameraBindingComponent =
+            helios::engine::scene::components::CameraBindingComponent<ViewportHandle>;
+
+        using PerspectiveCameraComponent =
+            helios::engine::scene::components::PerspectiveCameraComponent<GameObjectHandle>;
+
+        using Position3DComponent =
+            helios::engine::spatial::components::Position3DComponent<GameObjectHandle, Local>;
+
+        using YawPitchRollComponent =
+            helios::engine::spatial::components::YawPitchRollComponent<GameObjectHandle>;
 
         struct ViewportCameraEntry {
             ViewportHandle viewportHandle{};
@@ -59,13 +68,20 @@ export namespace helios::imgui::widgets {
         struct CameraSnapshot {
             bool valid = false;
             bool hasPosition = false;
-            bool hasTarget = false;
-            bool hasUp = false;
+            bool hasRotation = false;
             bool hasPerspective = false;
 
             helios::math::vec3f position{0.0f, 0.0f, 1.0f};
-            helios::math::vec3f target{0.0f, 0.0f, 0.0f};
-            helios::math::vec3f up{0.0f, 1.0f, 0.0f};
+
+            /**
+             * @brief First-person control state in radians.
+             *
+             * @details Stored as:
+             * - x: yaw
+             * - y: pitch
+             * - z: roll
+             */
+            helios::math::vec3f rotation{0.0f, 0.0f, 0.0f};
 
             float fovYDegrees = 90.0f;
             float aspectRatio = 16.0f / 9.0f;
@@ -79,8 +95,16 @@ export namespace helios::imgui::widgets {
         int selectedViewportCameraIndex_ = -1;
 
         helios::math::vec3f tempPosition_{0.0f, 0.0f, 1.0f};
-        helios::math::vec3f tempTarget_{0.0f, 0.0f, 0.0f};
-        helios::math::vec3f tempUp_{0.0f, 1.0f, 0.0f};
+
+        /**
+         * @brief First-person control state in radians.
+         *
+         * @details Stored as:
+         * - x: yaw
+         * - y: pitch
+         * - z: roll
+         */
+        helios::math::vec3f tempRotation_{0.0f, 0.0f, 0.0f};
 
         float tempFovDegrees_ = 90.0f;
         float tempAspectRatio_ = 16.0f / 9.0f;
@@ -97,17 +121,28 @@ export namespace helios::imgui::widgets {
             auto viewportEntity = gameWorld_->find(viewportHandle);
             auto cameraEntity = gameWorld_->find(cameraHandle);
 
-            auto* viewportDebugNameCmp = viewportEntity ? viewportEntity->template get<DebugNameComponent<ViewportHandle>>() : nullptr;
-            auto* cameraDebugNameCmp = cameraEntity ? cameraEntity->template get<DebugNameComponent<GameObjectHandle>>() : nullptr;
+            auto* viewportDebugNameCmp = viewportEntity
+                ? viewportEntity->get<DebugNameComponent<ViewportHandle>>()
+                : nullptr;
 
-            return (viewportDebugNameCmp ? viewportDebugNameCmp->value : "Viewport " + std::to_string(viewportHandle.entityId))
-                + " -> " + (cameraDebugNameCmp ? cameraDebugNameCmp->value : "Camera " + std::to_string(cameraHandle.entityId));
+            auto* cameraDebugNameCmp = cameraEntity
+                ? cameraEntity->get<DebugNameComponent<GameObjectHandle>>()
+                : nullptr;
+
+            return (viewportDebugNameCmp
+                    ? viewportDebugNameCmp->value
+                    : "Viewport " + std::to_string(viewportHandle.entityId))
+                + " -> "
+                + (cameraDebugNameCmp
+                    ? cameraDebugNameCmp->value
+                    : "Camera " + std::to_string(cameraHandle.entityId));
         }
 
         void refreshViewportCameraEntries() {
             const auto previousCameraHandle = cameraHandle_;
             ViewportHandle previousViewportHandle{};
             bool hasPreviousViewport = false;
+
             if (selectedViewportCameraIndex_ >= 0
                 && selectedViewportCameraIndex_ < static_cast<int>(viewportCameraEntries_.size())) {
                 previousViewportHandle = viewportCameraEntries_[selectedViewportCameraIndex_].viewportHandle;
@@ -123,7 +158,9 @@ export namespace helios::imgui::widgets {
                 return;
             }
 
-            for (auto [viewportEntity, cameraBinding] : gameWorld_->template view<ViewportHandle, ViewportCameraBindingComponent>()) {
+            for (auto [viewportEntity, cameraBinding] :
+                gameWorld_->view<ViewportHandle, ViewportCameraBindingComponent>()) {
+
                 const auto viewportHandle = viewportEntity.handle();
                 const auto boundCameraHandle = cameraBinding->targetHandle();
 
@@ -142,6 +179,7 @@ export namespace helios::imgui::widgets {
             }
 
             int matchingIndex = -1;
+
             if (hasPreviousViewport) {
                 for (int i = 0; i < static_cast<int>(viewportCameraEntries_.size()); ++i) {
                     if (viewportCameraEntries_[i].viewportHandle == previousViewportHandle) {
@@ -167,6 +205,11 @@ export namespace helios::imgui::widgets {
             if (selectedViewportCameraIndex_ != matchingIndex) {
                 selectedViewportCameraIndex_ = matchingIndex;
                 cameraHandle_ = viewportCameraEntries_[selectedViewportCameraIndex_].cameraHandle;
+
+                /**
+                 * The selected camera changed. We keep tempRotation_ as the widget's
+                 * first-person control state and re-sync position/projection from ECS.
+                 */
                 syncedFromEntity_ = false;
             }
         }
@@ -182,6 +225,11 @@ export namespace helios::imgui::widgets {
 
             selectedViewportCameraIndex_ = index;
             cameraHandle_ = viewportCameraEntries_[selectedViewportCameraIndex_].cameraHandle;
+
+            /**
+             * Do not decompose the camera quaternion back into Euler angles here.
+             * tempRotation_ is the widget's first-person control state.
+             */
             syncedFromEntity_ = false;
         }
 
@@ -195,15 +243,14 @@ export namespace helios::imgui::widgets {
                 snapshot.position = position->value();
             }
 
-            if (const auto* target = entity.template get<TargetPosition3DComponent>()) {
-                snapshot.hasTarget = true;
-                snapshot.target = target->value();
+            if (const auto* yawPitchRoll = entity.template get<YawPitchRollComponent>()) {
+                snapshot.hasRotation = true;
+                snapshot.rotation = helios::math::vec3f{
+                    yawPitchRoll->yaw,
+                    yawPitchRoll->pitch,
+                    yawPitchRoll->roll
+                };
             }
-
-           /* if (const auto* up = entity.template get<UpVector3DComponent>()) {
-                snapshot.hasUp = true;
-                snapshot.up = up->value();
-            }*/
 
             if (const auto* camera = entity.template get<PerspectiveCameraComponent>()) {
                 snapshot.hasPerspective = true;
@@ -222,13 +269,13 @@ export namespace helios::imgui::widgets {
                 tempPosition_ = position->value();
             }
 
-            if (auto* target = entity.template get<TargetPosition3DComponent>()) {
-                tempTarget_ = target->value();
+            if (auto* yawPitchRoll = entity.template get<YawPitchRollComponent>()) {
+                tempRotation_ = helios::math::vec3f{
+                    yawPitchRoll->yaw,
+                    yawPitchRoll->pitch,
+                    yawPitchRoll->roll
+                };
             }
-
-            /*if (auto* up = entity.template get<UpVector3DComponent>()) {
-                tempUp_ = up->value();
-            }*/
 
             if (auto* camera = entity.template get<PerspectiveCameraComponent>()) {
                 tempFovDegrees_ = helios::math::degrees(camera->fovY());
@@ -267,20 +314,37 @@ export namespace helios::imgui::widgets {
             return true;
         }
 
+        template<typename TEntity>
+        bool writeYawPitchRollToEntity(TEntity& entity) {
+            auto* yawPitchRoll = entity.template get<YawPitchRollComponent>();
+            if (!yawPitchRoll) {
+                return false;
+            }
+
+            yawPitchRoll->yaw = tempRotation_[0];
+            yawPitchRoll->pitch = tempRotation_[1];
+            yawPitchRoll->roll = tempRotation_[2];
+
+            return true;
+        }
+
     public:
+
         /**
          * @brief Creates the widget bound to a runtime `GameWorld`.
          *
          * @param gameWorld World used for viewport/camera discovery and component edits.
          */
-        explicit CameraWidget(GameWorld& gameWorld) noexcept : gameWorld_(&gameWorld) {}
+        explicit CameraWidget(GameWorld& gameWorld) noexcept
+            : gameWorld_(&gameWorld) {}
 
         /**
          * @brief Renders the camera editor UI and writes changes into ECS components.
          *
          * @details The UI provides:
          * - viewport/camera selection via `CameraBindingComponent<ViewportHandle>`
-         * - editing for `Position3DComponent`, `TargetPosition3DComponent`, `UpVector3DComponent`
+         * - editing for `Position3DComponent`
+         * - first-person-style yaw/pitch/roll editing for `YawPitchRollComponent`
          * - editing for `PerspectiveCameraComponent`
          * - reset to the snapshot captured when the current selection became active
          */
@@ -299,6 +363,7 @@ export namespace helios::imgui::widgets {
             }
 
             refreshViewportCameraEntries();
+
             if (viewportCameraEntries_.empty()) {
                 ImGui::TextDisabled("No viewport has CameraBindingComponent.");
                 ImGui::End();
@@ -306,20 +371,24 @@ export namespace helios::imgui::widgets {
             }
 
             const char* selectedLabel = "<none>";
-            if (selectedViewportCameraIndex_ >= 0 && selectedViewportCameraIndex_ < static_cast<int>(viewportCameraEntries_.size())) {
+            if (selectedViewportCameraIndex_ >= 0
+                && selectedViewportCameraIndex_ < static_cast<int>(viewportCameraEntries_.size())) {
                 selectedLabel = viewportCameraEntries_[selectedViewportCameraIndex_].label.c_str();
             }
 
             if (ImGui::BeginCombo("Viewport / Camera", selectedLabel)) {
                 for (int i = 0; i < static_cast<int>(viewportCameraEntries_.size()); ++i) {
                     const bool isSelected = selectedViewportCameraIndex_ == i;
+
                     if (ImGui::Selectable(viewportCameraEntries_[i].label.c_str(), isSelected)) {
                         selectViewportCameraIndex(i);
                     }
+
                     if (isSelected) {
                         ImGui::SetItemDefaultFocus();
                     }
                 }
+
                 ImGui::EndCombo();
             }
 
@@ -331,6 +400,7 @@ export namespace helios::imgui::widgets {
             }
 
             auto& cameraEntity = *cameraEntityOptional;
+
             if (!syncedFromEntity_) {
                 syncFromEntity(cameraEntity);
                 resetSnapshot_ = captureSnapshot(cameraEntity);
@@ -338,50 +408,116 @@ export namespace helios::imgui::widgets {
             }
 
             bool positionChanged = false;
-            bool targetChanged = false;
-            bool upChanged = false;
+            bool rotationChanged = false;
             bool projectionChanged = false;
+
             bool missingPosition = false;
-            bool missingTarget = false;
-            bool missingUp = false;
+            bool missingRotation = false;
             bool missingCamera = false;
 
-            ImGui::SeparatorText("LookAt Components");
+            ImGui::SeparatorText("Spatial Components");
 
             ImGui::Text("Position3DComponent");
-            positionChanged |= ImGui::DragFloat("X##Pos", &tempPosition_[0], 0.1f, -10000.0f, 10000.0f, "%.3f");
-            positionChanged |= ImGui::DragFloat("Y##Pos", &tempPosition_[1], 0.1f, -10000.0f, 10000.0f, "%.3f");
-            positionChanged |= ImGui::DragFloat("Z##Pos", &tempPosition_[2], 0.1f, -10000.0f, 10000.0f, "%.3f");
+            positionChanged |= ImGui::DragFloat(
+                "X##Pos",
+                &tempPosition_[0],
+                0.1f,
+                -10000.0f,
+                10000.0f,
+                "%.3f"
+            );
+
+            positionChanged |= ImGui::DragFloat(
+                "Y##Pos",
+                &tempPosition_[1],
+                0.1f,
+                -10000.0f,
+                10000.0f,
+                "%.3f"
+            );
+
+            positionChanged |= ImGui::DragFloat(
+                "Z##Pos",
+                &tempPosition_[2],
+                0.1f,
+                -10000.0f,
+                10000.0f,
+                "%.3f"
+            );
 
             ImGui::Spacing();
-            ImGui::Text("TargetPosition3DComponent");
-            targetChanged |= ImGui::DragFloat("X##Target", &tempTarget_[0], 0.1f, -10000.0f, 10000.0f, "%.3f");
-            targetChanged |= ImGui::DragFloat("Y##Target", &tempTarget_[1], 0.1f, -10000.0f, 10000.0f, "%.3f");
-            targetChanged |= ImGui::DragFloat("Z##Target", &tempTarget_[2], 0.1f, -10000.0f, 10000.0f, "%.3f");
+            ImGui::Text("YawPitchRollComponent (first-person yaw/pitch/roll)");
 
-            ImGui::Spacing();
-            ImGui::Text("UpVector3DComponent");
-            upChanged |= ImGui::DragFloat("X##Up", &tempUp_[0], 0.01f, -1.0f, 1.0f, "%.3f");
-            upChanged |= ImGui::DragFloat("Y##Up", &tempUp_[1], 0.01f, -1.0f, 1.0f, "%.3f");
-            upChanged |= ImGui::DragFloat("Z##Up", &tempUp_[2], 0.01f, -1.0f, 1.0f, "%.3f");
+            const auto pi = static_cast<float>(std::numbers::pi);
+            const auto halfPi = pi * 0.5f;
 
-            ImGui::SameLine();
-            if (ImGui::SmallButton("Normalize##Up")) {
-                const float len = tempUp_.length();
-                if (len > 0.0001f) {
-                    tempUp_ = tempUp_.normalize();
-                    upChanged = true;
-                }
-            }
+            rotationChanged |= ImGui::SliderFloat(
+                "Pitch##Rot",
+                &tempRotation_[1],
+                -halfPi + 0.001f,
+                halfPi - 0.001f,
+                "%.3f rad"
+            );
+
+            rotationChanged |= ImGui::SliderFloat(
+                "Yaw##Rot",
+                &tempRotation_[0],
+                -pi,
+                pi,
+                "%.3f rad"
+            );
+
+            /**
+             * Keep roll available for debugging/editor use.
+             * For a strict FPS camera, remove this slider and keep tempRotation_[2] = 0.
+             */
+            rotationChanged |= ImGui::SliderFloat(
+                "Roll##Rot",
+                &tempRotation_[2],
+                -pi,
+                pi,
+                "%.3f rad"
+            );
 
             ImGui::SeparatorText("PerspectiveCameraComponent");
-            projectionChanged |= ImGui::SliderFloat("FOV Y", &tempFovDegrees_, 10.0f, 170.0f, "%.1f deg");
-            projectionChanged |= ImGui::DragFloat("Aspect", &tempAspectRatio_, 0.01f, 0.1f, 8.0f, "%.3f");
-            projectionChanged |= ImGui::DragFloat("Near", &tempZNear_, 0.001f, 0.001f, 1000.0f, "%.4f");
-            projectionChanged |= ImGui::DragFloat("Far", &tempZFar_, 1.0f, 0.01f, 1000000.0f, "%.2f");
+
+            projectionChanged |= ImGui::SliderFloat(
+                "FOV Y",
+                &tempFovDegrees_,
+                10.0f,
+                170.0f,
+                "%.1f deg"
+            );
+
+            projectionChanged |= ImGui::DragFloat(
+                "Aspect",
+                &tempAspectRatio_,
+                0.01f,
+                0.1f,
+                8.0f,
+                "%.3f"
+            );
+
+            projectionChanged |= ImGui::DragFloat(
+                "Near",
+                &tempZNear_,
+                0.001f,
+                0.001f,
+                1000.0f,
+                "%.4f"
+            );
+
+            projectionChanged |= ImGui::DragFloat(
+                "Far",
+                &tempZFar_,
+                1.0f,
+                0.01f,
+                1000000.0f,
+                "%.2f"
+            );
 
             if (positionChanged) {
-                auto* position = cameraEntity.template get<Position3DComponent>();
+                auto* position = cameraEntity.get<Position3DComponent>();
                 if (position) {
                     position->setValue(tempPosition_);
                 } else {
@@ -389,23 +525,9 @@ export namespace helios::imgui::widgets {
                 }
             }
 
-            if (targetChanged) {
-                auto* target = cameraEntity.template get<TargetPosition3DComponent>();
-                if (target) {
-                    target->setValue(tempTarget_);
-                } else {
-                    missingTarget = true;
-                }
+            if (rotationChanged) {
+                missingRotation = !writeYawPitchRollToEntity(cameraEntity);
             }
-
-          /*  if (upChanged) {
-                auto* up = cameraEntity.template get<UpVector3DComponent>();
-                if (up) {
-                    up->setValue(tempUp_);
-                } else {
-                    missingUp = true;
-                }
-            }*/
 
             if (projectionChanged) {
                 missingCamera = !writeProjectionToEntity(cameraEntity);
@@ -413,9 +535,10 @@ export namespace helios::imgui::widgets {
 
             ImGui::Spacing();
             ImGui::BeginDisabled(!resetSnapshot_.valid);
+
             if (ImGui::Button("Reset selected camera")) {
                 if (resetSnapshot_.hasPosition) {
-                    auto* position = cameraEntity.template get<Position3DComponent>();
+                    auto* position = cameraEntity.get<Position3DComponent>();
                     if (position) {
                         position->setValue(resetSnapshot_.position);
                         tempPosition_ = resetSnapshot_.position;
@@ -424,28 +547,13 @@ export namespace helios::imgui::widgets {
                     }
                 }
 
-                if (resetSnapshot_.hasTarget) {
-                    auto* target = cameraEntity.template get<TargetPosition3DComponent>();
-                    if (target) {
-                        target->setValue(resetSnapshot_.target);
-                        tempTarget_ = resetSnapshot_.target;
-                    } else {
-                        missingTarget = true;
-                    }
+                if (resetSnapshot_.hasRotation) {
+                    tempRotation_ = resetSnapshot_.rotation;
+                    missingRotation = !writeYawPitchRollToEntity(cameraEntity);
                 }
 
-               /* if (resetSnapshot_.hasUp) {
-                    auto* up = cameraEntity.template get<UpVector3DComponent>();
-                    if (up) {
-                        up->setValue(resetSnapshot_.up);
-                        tempUp_ = resetSnapshot_.up;
-                    } else {
-                        missingUp = true;
-                    }
-                }*/
-
                 if (resetSnapshot_.hasPerspective) {
-                    auto* perspective = cameraEntity.template get<PerspectiveCameraComponent>();
+                    auto* perspective = cameraEntity.get<PerspectiveCameraComponent>();
                     if (perspective) {
                         perspective->setPerspective(
                             helios::math::radians(resetSnapshot_.fovYDegrees),
@@ -453,6 +561,7 @@ export namespace helios::imgui::widgets {
                             resetSnapshot_.zNear,
                             resetSnapshot_.zFar
                         );
+
                         tempFovDegrees_ = resetSnapshot_.fovYDegrees;
                         tempAspectRatio_ = resetSnapshot_.aspectRatio;
                         tempZNear_ = resetSnapshot_.zNear;
@@ -462,27 +571,35 @@ export namespace helios::imgui::widgets {
                     }
                 }
             }
+
             ImGui::EndDisabled();
 
-            if (missingPosition || missingTarget || missingUp || missingCamera) {
+            if (missingPosition || missingRotation || missingCamera) {
                 ImGui::Separator();
-                ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.2f, 1.0f), "Missing component(s): values could not be written.");
+                ImGui::TextColored(
+                    ImVec4(1.0f, 0.75f, 0.2f, 1.0f),
+                    "Missing component(s): values could not be written."
+                );
+
                 if (missingPosition) {
                     ImGui::TextDisabled("- Position3DComponent");
                 }
-                if (missingTarget) {
-                    ImGui::TextDisabled("- TargetPosition3DComponent");
+
+                if (missingRotation) {
+                    ImGui::TextDisabled("- YawPitchRollComponent");
                 }
-                if (missingUp) {
-                    ImGui::TextDisabled("- UpVector3DComponent");
-                }
+
                 if (missingCamera) {
                     ImGui::TextDisabled("- PerspectiveCameraComponent");
                 }
             }
 
             ImGui::Separator();
-            ImGui::TextDisabled("Handle: entityId=%u versionId=%u", cameraHandle_.entityId, cameraHandle_.versionId);
+            ImGui::TextDisabled(
+                "Handle: entityId=%u versionId=%u",
+                cameraHandle_.entityId,
+                cameraHandle_.versionId
+            );
 
             ImGui::End();
         }
