@@ -18,8 +18,7 @@ runtime diagnostics.
 - Docking-enabled overlay support
 - Base `ImGuiWidget` interface for custom developer tools
 - Log sink bridge from the helios logging system to an ImGui console
-- Built-in FPS, log-console, and main-menu widgets
-- Optional legacy camera-control widget behind a CMake option
+- Built-in FPS, log-console, main-menu, and camera widgets
 
 ## Module surface
 
@@ -68,9 +67,6 @@ Built-in widgets include:
 
 `ImGuiLogSink` forwards helios log messages into `widgets::LogWidget`.
 
-The legacy `widgets::CameraWidget` can be included in builds with
-`HELIOS_IMGUI_ENABLE_LEGACY_CAMERA_WIDGET=ON`.
-
 ### CMake
 
 Use as a local sibling/subdirectory module:
@@ -116,15 +112,8 @@ cmake -S . -B build
 cmake --build build
 ```
 
-Enable the optional legacy camera widget when needed:
-
-```bash
-cmake -S . -B build -DHELIOS_IMGUI_ENABLE_LEGACY_CAMERA_WIDGET=ON
-cmake --build build
-```
-
-The default build excludes legacy camera/gamepad UI that still depends on old
-scene/input APIs or has not yet been ported to the split repository layout.
+All built-in widgets, including `widgets::CameraWidget`, are compiled in the
+regular default build.
 
 ## Related repositories
 
@@ -133,6 +122,4 @@ scene/input APIs or has not yet been ported to the split repository layout.
 - [`helios-math`](https://github.com/thorstensuckow/helios-math)
 - [`helios-opengl`](https://github.com/thorstensuckow/helios-opengl)
 - [`helios-glfw`](https://github.com/thorstensuckow/helios-glfw)
-
-
 
