@@ -37,7 +37,7 @@ export namespace helios::imgui::systems {
         /**
          * @brief Runtime role tag used by the engine system registry.
          */
-        using EngineRoleTag = SystemRole;
+        using EngineRoleTag = TypedSystemRole;
 
 
         /**
