@@ -311,6 +311,7 @@ export namespace helios::imgui::widgets {
                 tempZFar_
             );
 
+            entity.template markDirty<PerspectiveCameraComponent>();
             return true;
         }
 
@@ -325,6 +326,7 @@ export namespace helios::imgui::widgets {
             yawPitchRoll->pitch = tempRotation_[1];
             yawPitchRoll->roll = tempRotation_[2];
 
+            entity.template markDirty<YawPitchRollComponent>();
             return true;
         }
 
@@ -520,6 +522,7 @@ export namespace helios::imgui::widgets {
                 auto* position = cameraEntity.get<Position3DComponent>();
                 if (position) {
                     position->setValue(tempPosition_);
+                    cameraEntity.markDirty<Position3DComponent>();
                 } else {
                     missingPosition = true;
                 }
@@ -541,6 +544,7 @@ export namespace helios::imgui::widgets {
                     auto* position = cameraEntity.get<Position3DComponent>();
                     if (position) {
                         position->setValue(resetSnapshot_.position);
+                        cameraEntity.template markDirty<Position3DComponent>();
                         tempPosition_ = resetSnapshot_.position;
                     } else {
                         missingPosition = true;
@@ -561,7 +565,7 @@ export namespace helios::imgui::widgets {
                             resetSnapshot_.zNear,
                             resetSnapshot_.zFar
                         );
-
+                        cameraEntity.markDirty<PerspectiveCameraComponent>();
                         tempFovDegrees_ = resetSnapshot_.fovYDegrees;
                         tempAspectRatio_ = resetSnapshot_.aspectRatio;
                         tempZNear_ = resetSnapshot_.zNear;
