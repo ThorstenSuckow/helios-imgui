@@ -304,14 +304,13 @@ export namespace helios::imgui::widgets {
                 return false;
             }
 
-            camera->setPerspective(
+            entity.setTrackedValue(camera, helios::math::vec4f{
                 helios::math::radians(tempFovDegrees_),
                 tempAspectRatio_,
                 tempZNear_,
                 tempZFar_
-            );
+            });
 
-            entity.template markDirty<PerspectiveCameraComponent>();
             return true;
         }
 
@@ -322,11 +321,7 @@ export namespace helios::imgui::widgets {
                 return false;
             }
 
-            yawPitchRoll->yaw = tempRotation_[0];
-            yawPitchRoll->pitch = tempRotation_[1];
-            yawPitchRoll->roll = tempRotation_[2];
-
-            entity.template markDirty<YawPitchRollComponent>();
+            entity.setTrackedValue(yawPitchRoll, tempRotation_);
             return true;
         }
 
@@ -519,10 +514,8 @@ export namespace helios::imgui::widgets {
             );
 
             if (positionChanged) {
-                auto* position = cameraEntity.get<Position3DComponent>();
-                if (position) {
-                    position->setValue(tempPosition_);
-                    cameraEntity.markDirty<Position3DComponent>();
+                if (auto* position = cameraEntity.get<Position3DComponent>()) {
+                    cameraEntity.setTrackedValue(position, tempPosition_);
                 } else {
                     missingPosition = true;
                 }
@@ -541,10 +534,8 @@ export namespace helios::imgui::widgets {
 
             if (ImGui::Button("Reset selected camera")) {
                 if (resetSnapshot_.hasPosition) {
-                    auto* position = cameraEntity.get<Position3DComponent>();
-                    if (position) {
-                        position->setValue(resetSnapshot_.position);
-                        cameraEntity.template markDirty<Position3DComponent>();
+                    if (auto* position = cameraEntity.get<Position3DComponent>()) {
+                        cameraEntity.setTrackedValue(position, resetSnapshot_.position);
                         tempPosition_ = resetSnapshot_.position;
                     } else {
                         missingPosition = true;
@@ -557,15 +548,13 @@ export namespace helios::imgui::widgets {
                 }
 
                 if (resetSnapshot_.hasPerspective) {
-                    auto* perspective = cameraEntity.get<PerspectiveCameraComponent>();
-                    if (perspective) {
-                        perspective->setPerspective(
+                    if (auto* perspective = cameraEntity.get<PerspectiveCameraComponent>()) {
+                        cameraEntity.setTrackedValue(perspective, helios::math::vec4f{
                             helios::math::radians(resetSnapshot_.fovYDegrees),
                             resetSnapshot_.aspectRatio,
                             resetSnapshot_.zNear,
                             resetSnapshot_.zFar
-                        );
-                        cameraEntity.markDirty<PerspectiveCameraComponent>();
+                        });
                         tempFovDegrees_ = resetSnapshot_.fovYDegrees;
                         tempAspectRatio_ = resetSnapshot_.aspectRatio;
                         tempZNear_ = resetSnapshot_.zNear;
