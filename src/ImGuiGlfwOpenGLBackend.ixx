@@ -169,6 +169,8 @@ export namespace helios::imgui {
         /**
          * @brief Starts a new ImGui frame.
          *
+         * If the windowHandle_ cannot be found, this method returns false.
+         *
          * @return `true` if frame setup succeeded; otherwise `false`.
          */
         bool newFrame() override {
@@ -177,6 +179,9 @@ export namespace helios::imgui {
                 return false;
             }
 
+            if (!platformWorld_.findEntity(windowHandle_)) {
+                return false;
+            }
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
