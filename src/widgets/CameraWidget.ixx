@@ -20,8 +20,8 @@ import helios.engine.runtime.world.GameWorld;
 import helios.engine.runtime.world.types.GameObjectHandle;
 import helios.engine.rendering.viewport.types.ViewportHandle;
 
-import helios.engine.scene.components.PerspectiveCameraComponent;
-import helios.engine.scene.components.CameraBindingComponent;
+import helios.engine.scene.components;
+import helios.engine.scene.types;
 import helios.engine.spatial.components.Position3DComponent;
 import helios.engine.spatial.components.YawPitchRollComponent;
 
@@ -31,6 +31,7 @@ import helios.engine.core.types.ComponentTypeTags;
 
 using namespace helios::engine::core::types;
 using namespace helios::engine::core::components;
+using namespace helios::engine::scene::types;
 
 export namespace helios::imgui::widgets {
 
@@ -51,17 +52,17 @@ export namespace helios::imgui::widgets {
             helios::engine::scene::components::CameraBindingComponent<ViewportHandle>;
 
         using PerspectiveCameraComponent =
-            helios::engine::scene::components::PerspectiveCameraComponent<GameObjectHandle>;
+            helios::engine::scene::components::PerspectiveCameraComponent<CameraHandle>;
 
         using Position3DComponent =
-            helios::engine::spatial::components::Position3DComponent<GameObjectHandle, Local>;
+            helios::engine::spatial::components::Position3DComponent<CameraHandle, Local>;
 
         using YawPitchRollComponent =
-            helios::engine::spatial::components::YawPitchRollComponent<GameObjectHandle>;
+            helios::engine::spatial::components::YawPitchRollComponent<CameraHandle>;
 
         struct ViewportCameraEntry {
             ViewportHandle viewportHandle{};
-            GameObjectHandle cameraHandle{};
+            CameraHandle cameraHandle{};
             std::string label;
         };
 
@@ -90,7 +91,7 @@ export namespace helios::imgui::widgets {
         };
 
         GameWorld* gameWorld_ = nullptr;
-        GameObjectHandle cameraHandle_{};
+        CameraHandle cameraHandle_{};
         std::vector<ViewportCameraEntry> viewportCameraEntries_{};
         int selectedViewportCameraIndex_ = -1;
 
@@ -116,7 +117,7 @@ export namespace helios::imgui::widgets {
 
         [[nodiscard]] std::string makeViewportCameraLabel(
             const ViewportHandle viewportHandle,
-            const GameObjectHandle cameraHandle
+            const CameraHandle cameraHandle
         ) {
             auto viewportEntity = gameWorld_->find(viewportHandle);
             auto cameraEntity = gameWorld_->find(cameraHandle);
@@ -126,7 +127,7 @@ export namespace helios::imgui::widgets {
                 : nullptr;
 
             auto* cameraDebugNameCmp = cameraEntity
-                ? cameraEntity->get<DebugNameComponent<GameObjectHandle>>()
+                ? cameraEntity->get<DebugNameComponent<CameraHandle>>()
                 : nullptr;
 
             return (viewportDebugNameCmp
