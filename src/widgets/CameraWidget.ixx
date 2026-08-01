@@ -132,11 +132,11 @@ export namespace helios::imgui::widgets {
 
             return (viewportDebugNameCmp
                     ? viewportDebugNameCmp->value
-                    : "Viewport " + std::to_string(viewportHandle.entityId))
+                    : "Viewport " + std::to_string(viewportHandle.entityId()))
                 + " -> "
                 + (cameraDebugNameCmp
                     ? cameraDebugNameCmp->value
-                    : "Camera " + std::to_string(cameraHandle.entityId));
+                    : "Camera " + std::to_string(cameraHandle.entityId()));
         }
 
         void refreshViewportCameraEntries() {
@@ -591,8 +591,8 @@ export namespace helios::imgui::widgets {
             ImGui::Separator();
             ImGui::TextDisabled(
                 "Handle: entityId=%u versionId=%u",
-                cameraHandle_.entityId,
-                cameraHandle_.versionId
+                cameraHandle_.entityId(),
+                cameraHandle_.versionId()
             );
 
             ImGui::End();
