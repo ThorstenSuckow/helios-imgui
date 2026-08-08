@@ -27,7 +27,7 @@ import helios.engine.spatial.components.YawPitchRollComponent;
 
 import helios.math.types;
 import helios.math.utils;
-import helios.engine.core.types.ComponentTypeTags;
+import helios.engine.core.types;
 
 using namespace helios::engine::core::types;
 using namespace helios::engine::core::components;
