@@ -15,12 +15,11 @@ export module helios.imgui.ImGuiGlfwOpenGLBackend;
 
 import helios.imgui.ImGuiBackend;
 import helios.engine.platform.window.types.WindowHandle;
-import helios.engine.runtime.world.EngineWorld;
 
+import helios.ecs.EntitySpace;
 import helios.glfw.components.GLFWWindowHandleComponent;
 
 using namespace helios::engine::platform::window::types;
-using namespace helios::engine::runtime::world;
 using namespace helios::glfw::components;
 export namespace helios::imgui {
 
@@ -77,7 +76,7 @@ export namespace helios::imgui {
         /**
          * @brief Platform world that stores the GLFW window-handle component.
          */
-        PlatformWorld& platformWorld_;
+        ecs::EntitySpace& entitySpace_;
 
         /**
          * @brief Performs one-time backend initialization.
@@ -92,7 +91,7 @@ export namespace helios::imgui {
             if (initialized_) {
                 return true;
             }
-            auto glfwWindow = platformWorld_.findEntity(windowHandle_);
+            auto glfwWindow = entitySpace_.findEntity(windowHandle_);
 
             if (!glfwWindow) {
                 assert(false && "Expected a valid GLFW window entity");
@@ -133,12 +132,12 @@ export namespace helios::imgui {
          * @brief Constructs the ImGui backend for GLFW+OpenGL.
          *
          * @param window GLFW window handle. Must be valid for the lifetime of this backend.
-         * @param platformWorld Platform world used to resolve the native GLFW window handle.
+         * @param entitySpace Entity space used to resolve the native GLFW window handle.
          *
          * @throws std::runtime_error if an ImGui context already exists.
          */
-        explicit ImGuiGlfwOpenGLBackend(WindowHandle window, PlatformWorld& platformWorld)
-            : windowHandle_(window), platformWorld_(platformWorld) {
+        explicit ImGuiGlfwOpenGLBackend(WindowHandle window, ecs::EntitySpace& entitySpace)
+            : windowHandle_(window), entitySpace_(entitySpace) {
 
             if (ImGui::GetCurrentContext()) {
                 throw std::runtime_error("ImGui context already initialized");
@@ -179,7 +178,7 @@ export namespace helios::imgui {
                 return false;
             }
 
-            if (!platformWorld_.findEntity(windowHandle_)) {
+            if (!entitySpace_.findEntity(windowHandle_)) {
                 return false;
             }
 

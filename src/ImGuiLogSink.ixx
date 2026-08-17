@@ -8,7 +8,7 @@ module;
 
 export module helios.imgui.ImGuiLogSink;
 
-import helios.engine.util.log.LogSink;
+import helios.core.log.LogSink;
 import helios.imgui.widgets.LogWidget;
 
 export namespace helios::imgui {
@@ -29,7 +29,7 @@ export namespace helios::imgui {
      * LogManager::getInstance().registerSink(sink);
      * ```
      */
-    class ImGuiLogSink : public helios::engine::util::log::LogSink {
+    class ImGuiLogSink : public helios::core::log::LogSink {
 
     private:
         /**
@@ -41,7 +41,7 @@ export namespace helios::imgui {
         /**
          * @brief Unique type identifier for this sink.
          */
-        static constexpr helios::engine::util::log::SinkTypeId TYPE_ID = "imgui";
+        static constexpr helios::core::log::SinkTypeId TYPE_ID = "imgui";
 
         /**
          * @brief Constructs an ImGuiLogSink attached to a LogWidget.
@@ -57,7 +57,7 @@ export namespace helios::imgui {
          *
          * @return "imgui".
          */
-        [[nodiscard]] helios::engine::util::log::SinkTypeId typeId() const noexcept override {
+        [[nodiscard]] helios::core::log::SinkTypeId typeId() const noexcept override {
             return TYPE_ID;
         }
 
@@ -68,7 +68,7 @@ export namespace helios::imgui {
          * @param scope   The source scope/module name.
          * @param message The log message text.
          */
-        void write(helios::engine::util::log::LogLevel level,
+        void write(helios::core::log::LogLevel level,
                    const std::string& scope,
                    const std::string& message) override {
             if (!widget_) return;
@@ -76,13 +76,13 @@ export namespace helios::imgui {
             // Map LogLevel to LogWidget's LogLevel
             widgets::LogLevel widgetLevel;
             switch (level) {
-                case helios::engine::util::log::LogLevel::Debug:
+                case helios::core::log::LogLevel::Debug:
                     widgetLevel = widgets::LogLevel::Debug; break;
-                case helios::engine::util::log::LogLevel::Info:
+                case helios::core::log::LogLevel::Info:
                     widgetLevel = widgets::LogLevel::Info;  break;
-                case helios::engine::util::log::LogLevel::Warn:
+                case helios::core::log::LogLevel::Warn:
                     widgetLevel = widgets::LogLevel::Warn;  break;
-                case helios::engine::util::log::LogLevel::Error:
+                case helios::core::log::LogLevel::Error:
                     widgetLevel = widgets::LogLevel::Error; break;
                 default:
                     widgetLevel = widgets::LogLevel::Info;

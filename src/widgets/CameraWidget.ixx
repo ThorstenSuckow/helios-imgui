@@ -119,15 +119,15 @@ export namespace helios::imgui::widgets {
             const ViewportHandle viewportHandle,
             const CameraHandle cameraHandle
         ) {
-            auto viewportEntity = gameWorld_->find(viewportHandle);
-            auto cameraEntity = gameWorld_->find(cameraHandle);
+            auto viewportEntity = gameWorld_->findEntity(viewportHandle);
+            auto cameraEntity = gameWorld_->findEntity(cameraHandle);
 
             auto* viewportDebugNameCmp = viewportEntity
-                ? viewportEntity->get<DebugNameComponent<ViewportHandle>>()
+                ? viewportEntity->template get<DebugNameComponent<ViewportHandle>>()
                 : nullptr;
 
             auto* cameraDebugNameCmp = cameraEntity
-                ? cameraEntity->get<DebugNameComponent<CameraHandle>>()
+                ? cameraEntity->template get<DebugNameComponent<CameraHandle>>()
                 : nullptr;
 
             return (viewportDebugNameCmp
@@ -160,7 +160,7 @@ export namespace helios::imgui::widgets {
             }
 
             for (auto [viewportEntity, cameraBinding] :
-                gameWorld_->view<ViewportHandle, ViewportCameraBindingComponent>()) {
+                gameWorld_->template view<ViewportHandle, ViewportCameraBindingComponent>()) {
 
                 const auto viewportHandle = viewportEntity.handle();
                 const auto boundCameraHandle = cameraBinding->targetHandle();
@@ -390,7 +390,7 @@ export namespace helios::imgui::widgets {
                 ImGui::EndCombo();
             }
 
-            auto cameraEntityOptional = gameWorld_->find(cameraHandle_);
+            auto cameraEntityOptional = gameWorld_->findEntity(cameraHandle_);
             if (!cameraEntityOptional) {
                 ImGui::TextDisabled("Camera entity not found or stale handle.");
                 ImGui::End();
@@ -515,7 +515,7 @@ export namespace helios::imgui::widgets {
             );
 
             if (positionChanged) {
-                if (auto* position = cameraEntity.get<Position3DComponent>()) {
+                if (auto* position = cameraEntity.template get<Position3DComponent>()) {
                     cameraEntity.setTrackedValue(position, tempPosition_);
                 } else {
                     missingPosition = true;
@@ -535,7 +535,7 @@ export namespace helios::imgui::widgets {
 
             if (ImGui::Button("Reset selected camera")) {
                 if (resetSnapshot_.hasPosition) {
-                    if (auto* position = cameraEntity.get<Position3DComponent>()) {
+                    if (auto* position = cameraEntity.template get<Position3DComponent>()) {
                         cameraEntity.setTrackedValue(position, resetSnapshot_.position);
                         tempPosition_ = resetSnapshot_.position;
                     } else {
@@ -549,7 +549,7 @@ export namespace helios::imgui::widgets {
                 }
 
                 if (resetSnapshot_.hasPerspective) {
-                    if (auto* perspective = cameraEntity.get<PerspectiveCameraComponent>()) {
+                    if (auto* perspective = cameraEntity.template get<PerspectiveCameraComponent>()) {
                         cameraEntity.setTrackedValue(perspective, helios::math::vec4f{
                             helios::math::radians(resetSnapshot_.fovYDegrees),
                             resetSnapshot_.aspectRatio,
