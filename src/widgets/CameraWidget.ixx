@@ -119,8 +119,8 @@ export namespace helios::imgui::widgets {
             const ViewportHandle viewportHandle,
             const CameraHandle cameraHandle
         ) {
-            auto viewportEntity = gameWorld_->findEntity(viewportHandle);
-            auto cameraEntity = gameWorld_->findEntity(cameraHandle);
+            auto viewportEntity = gameWorld_->find(viewportHandle);
+            auto cameraEntity = gameWorld_->find(cameraHandle);
 
             auto* viewportDebugNameCmp = viewportEntity
                 ? viewportEntity->template get<DebugNameComponent<ViewportHandle>>()
@@ -390,7 +390,7 @@ export namespace helios::imgui::widgets {
                 ImGui::EndCombo();
             }
 
-            auto cameraEntityOptional = gameWorld_->findEntity(cameraHandle_);
+            auto cameraEntityOptional = gameWorld_->find(cameraHandle_);
             if (!cameraEntityOptional) {
                 ImGui::TextDisabled("Camera entity not found or stale handle.");
                 ImGui::End();

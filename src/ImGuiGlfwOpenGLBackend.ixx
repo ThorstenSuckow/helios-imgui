@@ -16,7 +16,7 @@ export module helios.imgui.ImGuiGlfwOpenGLBackend;
 import helios.imgui.ImGuiBackend;
 import helios.engine.platform.window.types.WindowHandle;
 
-import helios.ecs.EntitySpace;
+import helios.ecs.EcsWorld;
 import helios.glfw.components.GLFWWindowHandleComponent;
 
 using namespace helios::engine::platform::window::types;
@@ -76,7 +76,7 @@ export namespace helios::imgui {
         /**
          * @brief Platform world that stores the GLFW window-handle component.
          */
-        ecs::EntitySpace& entitySpace_;
+        ecs::EcsWorld& ecsWorld_;
 
         /**
          * @brief Performs one-time backend initialization.
@@ -91,7 +91,7 @@ export namespace helios::imgui {
             if (initialized_) {
                 return true;
             }
-            auto glfwWindow = entitySpace_.findEntity(windowHandle_);
+            auto glfwWindow = ecsWorld_.find(windowHandle_);
 
             if (!glfwWindow) {
                 assert(false && "Expected a valid GLFW window entity");
@@ -132,12 +132,12 @@ export namespace helios::imgui {
          * @brief Constructs the ImGui backend for GLFW+OpenGL.
          *
          * @param window GLFW window handle. Must be valid for the lifetime of this backend.
-         * @param entitySpace Entity space used to resolve the native GLFW window handle.
+         * @param ecsWorld Entity space used to resolve the native GLFW window handle.
          *
          * @throws std::runtime_error if an ImGui context already exists.
          */
-        explicit ImGuiGlfwOpenGLBackend(WindowHandle window, ecs::EntitySpace& entitySpace)
-            : windowHandle_(window), entitySpace_(entitySpace) {
+        explicit ImGuiGlfwOpenGLBackend(WindowHandle window, ecs::EcsWorld& ecsWorld)
+            : windowHandle_(window), ecsWorld_(ecsWorld) {
 
             if (ImGui::GetCurrentContext()) {
                 throw std::runtime_error("ImGui context already initialized");
@@ -178,7 +178,7 @@ export namespace helios::imgui {
                 return false;
             }
 
-            if (!entitySpace_.findEntity(windowHandle_)) {
+            if (!ecsWorld_.find(windowHandle_)) {
                 return false;
             }
 
