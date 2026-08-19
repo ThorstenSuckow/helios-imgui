@@ -4,8 +4,6 @@
  */
 module;
 
-#include <cassert>
-
 export module helios.imgui.systems.ImGuiOverlayRenderSystem;
 
 import helios.ecs.system.tags;
@@ -26,11 +24,7 @@ export namespace helios::imgui::systems {
      *
      * The system keeps a reference to an overlay instance and invokes
      * `ImGuiOverlay::render()` on each update.
-     *
-     * @tparam TUpdateContextType Type of the UpdateContext to use.
      */
-    template<typename TUpdateContextType = types::SystemUpdateContext>
-    requires engine::runtime::concepts::ProvidesUpdateContext<TUpdateContextType, UpdateContext>
     class ImGuiOverlayRenderSystem {
 
         /**
@@ -44,7 +38,6 @@ export namespace helios::imgui::systems {
          * @brief Runtime role tag used by the engine system registry.
          */
         using EcsRoleTag = ecs::system::tags::TypedSystemRole;
-        using UpdateContextType = TUpdateContextType;
 
         /**
          * @brief Creates a render system bound to a specific ImGui overlay.
@@ -57,6 +50,8 @@ export namespace helios::imgui::systems {
          * @param updateCtx Per-frame update context provided by the runtime.
          * @return true if the update was successful.
          */
+        template<typename TUpdateContextType>
+        requires engine::runtime::concepts::ProvidesUpdateContext<TUpdateContextType, UpdateContext>
         bool update(TUpdateContextType& updateCtx) noexcept {
             (void)updateCtx.updateContext();
             overlay_.render();
