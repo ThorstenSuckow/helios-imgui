@@ -52,10 +52,9 @@ export namespace helios::imgui::systems {
          */
         template<typename TUpdateContextType>
         requires engine::runtime::concepts::ProvidesUpdateContext<TUpdateContextType, UpdateContext>
-        bool update(TUpdateContextType& updateCtx) noexcept {
+        void update(TUpdateContextType& updateCtx) noexcept {
             (void)updateCtx.updateContext();
             overlay_.render();
-            return true;
         };
 
     };
