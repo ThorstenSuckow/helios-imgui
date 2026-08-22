@@ -6,7 +6,7 @@ module;
 
 export module helios.imgui.systems.ImGuiOverlayRenderSystem;
 
-import helios.ecs.system.tags;
+
 import helios.engine.runtime.world.UpdateContext;
 import helios.engine.runtime.world.types;
 import helios.engine.runtime.concepts;
@@ -34,10 +34,6 @@ export namespace helios::imgui::systems {
 
     public:
 
-        /**
-         * @brief Runtime role tag used by the engine system registry.
-         */
-        using EcsRoleTag = ecs::system::tags::TypedSystemRole;
 
         /**
          * @brief Creates a render system bound to a specific ImGui overlay.
