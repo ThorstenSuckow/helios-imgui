@@ -47,13 +47,11 @@ export namespace helios::imgui::systems {
 
         /**
          * @brief Executes one system update and renders the bound overlay.
-         * @param updateCtx Per-frame update context provided by the runtime.
+         * @param updateContext Per-frame update context provided by the runtime.
          * @return true if the update was successful.
          */
-        template<typename TUpdateContextType>
-        requires engine::runtime::concepts::ProvidesUpdateContext<TUpdateContextType, UpdateContext>
-        void update(TUpdateContextType& updateCtx) noexcept {
-            (void)updateCtx.updateContext();
+        void update(UpdateContext& updateContext) noexcept {
+            (void)updateContext;
             overlay_.render();
         };
 
