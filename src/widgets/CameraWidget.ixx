@@ -48,7 +48,7 @@ export namespace helios::imgui::widgets {
         using CameraHandle = typename TRenderHandles::CameraHandle;
 
         using ViewportCameraBindingComponent =
-            helios::engine::scene::components::CameraBindingComponent<ViewportHandle, CameraHandle>;
+            helios::engine::scene::components::CameraBindingComponent<ViewportHandle, TRenderHandles>;
 
         using PerspectiveCameraComponent =
             helios::engine::scene::components::PerspectiveCameraComponent<CameraHandle>;
