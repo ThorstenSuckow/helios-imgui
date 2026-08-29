@@ -14,12 +14,10 @@ module;
 export module helios.imgui.ImGuiGlfwOpenGLBackend;
 
 import helios.imgui.ImGuiBackend;
-import helios.engine.platform.window.types.WindowHandle;
 
 import helios.ecs.EcsWorld;
 import helios.glfw.components.GLFWWindowHandleComponent;
 
-using namespace helios::engine::platform::window::types;
 using namespace helios::glfw::components;
 export namespace helios::imgui {
 
@@ -33,7 +31,10 @@ export namespace helios::imgui {
      * @note Only one instance should exist per application. Creating multiple instances
      * will throw a `std::runtime_error`.
      */
+    template<typename TWindowHandle>
     class ImGuiGlfwOpenGLBackend : public ImGuiBackend {
+
+        using WindowHandle = TWindowHandle;
 
     private:
 
@@ -98,7 +99,7 @@ export namespace helios::imgui {
                 return false;
             }
 
-            auto glfwComp = glfwWindow->get<GLFWWindowHandleComponent<WindowHandle>>();
+            auto glfwComp = glfwWindow->template get<GLFWWindowHandleComponent<WindowHandle>>();
 
             if (!glfwComp) {
                 return false;
