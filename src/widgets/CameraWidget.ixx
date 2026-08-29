@@ -17,7 +17,6 @@ import helios.imgui.ImGuiWidget;
 import helios.engine.core.components.DebugNameComponent;
 
 import helios.engine.runtime.world.GameWorld;
-import helios.engine.rendering.viewport.types.ViewportHandle;
 
 import helios.engine.scene.components;
 import helios.engine.scene.types;
@@ -41,13 +40,15 @@ export namespace helios::imgui::widgets {
      * `CameraBindingComponent<ViewportHandle>`, lets the user pick one camera,
      * and edits its transform/projection ECS components at runtime.
      */
+    template<typename TRenderHandles>
     class CameraWidget : public ImGuiWidget {
 
         using GameWorld = helios::engine::runtime::world::GameWorld;
-        using ViewportHandle = helios::engine::rendering::viewport::types::ViewportHandle;
+        using ViewportHandle = typename TRenderHandles::ViewportHandle;
+        using CameraHandle = typename TRenderHandles::CameraHandle;
 
         using ViewportCameraBindingComponent =
-            helios::engine::scene::components::CameraBindingComponent<ViewportHandle>;
+            helios::engine::scene::components::CameraBindingComponent<ViewportHandle, CameraHandle>;
 
         using PerspectiveCameraComponent =
             helios::engine::scene::components::PerspectiveCameraComponent<CameraHandle>;
