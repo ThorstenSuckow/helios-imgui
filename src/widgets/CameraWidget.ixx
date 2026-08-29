@@ -17,7 +17,6 @@ import helios.imgui.ImGuiWidget;
 import helios.engine.core.components.DebugNameComponent;
 
 import helios.engine.runtime.world.GameWorld;
-import helios.engine.runtime.world.types.GameObjectHandle;
 import helios.engine.rendering.viewport.types.ViewportHandle;
 
 import helios.engine.scene.components;
@@ -45,7 +44,6 @@ export namespace helios::imgui::widgets {
     class CameraWidget : public ImGuiWidget {
 
         using GameWorld = helios::engine::runtime::world::GameWorld;
-        using GameObjectHandle = helios::engine::runtime::world::types::GameObjectHandle;
         using ViewportHandle = helios::engine::rendering::viewport::types::ViewportHandle;
 
         using ViewportCameraBindingComponent =
