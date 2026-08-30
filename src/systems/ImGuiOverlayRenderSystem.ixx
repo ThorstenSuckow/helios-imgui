@@ -7,13 +7,13 @@ module;
 export module helios.imgui.systems.ImGuiOverlayRenderSystem;
 
 
-import helios.engine.runtime.gameloop.types;
+import helios.ecs.EcsWorld;
 
 
 import helios.imgui.ImGuiOverlay;
 
 
-using namespace helios::engine::runtime;
+
 using namespace helios::imgui;
 export namespace helios::imgui::systems {
 
@@ -26,7 +26,7 @@ export namespace helios::imgui::systems {
      */
     class ImGuiOverlayRenderSystem {
 
-        using UpdateContext = helios::engine::runtime::gameloop::types::UpdateContext;
+        using EcsWorld = ecs::EcsWorld;
 
         /**
          * @brief Referenced overlay rendered by this system.
@@ -44,11 +44,11 @@ export namespace helios::imgui::systems {
 
         /**
          * @brief Executes one system update and renders the bound overlay.
-         * @param updateContext Per-frame update context provided by the runtime.
+         * @param ecsWorld The ECS world (unused in this system).
          * @return true if the update was successful.
          */
-        void update(UpdateContext& updateContext) noexcept {
-            (void)updateContext;
+        void update(EcsWorld& ecsWorld) noexcept {
+            (void)ecsWorld;
             overlay_.render();
         };
 
