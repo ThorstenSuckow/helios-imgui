@@ -7,13 +7,13 @@ module;
 export module helios.imgui.systems.ImGuiOverlayRenderSystem;
 
 
-import helios.engine.runtime.world.UpdateContext;
-import helios.engine.runtime.concepts;
+import helios.engine.runtime.gameloop.types;
+
 
 import helios.imgui.ImGuiOverlay;
 
 
-using namespace helios::engine::runtime::world;
+using namespace helios::engine::runtime;
 using namespace helios::imgui;
 export namespace helios::imgui::systems {
 
@@ -25,6 +25,8 @@ export namespace helios::imgui::systems {
      * `ImGuiOverlay::render()` on each update.
      */
     class ImGuiOverlayRenderSystem {
+
+        using UpdateContext = helios::engine::runtime::gameloop::types::UpdateContext;
 
         /**
          * @brief Referenced overlay rendered by this system.

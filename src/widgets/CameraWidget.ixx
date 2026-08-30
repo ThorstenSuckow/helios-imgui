@@ -16,7 +16,7 @@ import helios.imgui.ImGuiWidget;
 
 import helios.engine.core.components.DebugNameComponent;
 
-import helios.engine.runtime.world.GameWorld;
+import helios.engine.runtime.GameWorld;
 
 import helios.engine.scene.components;
 import helios.engine.scene.types;
@@ -43,7 +43,7 @@ export namespace helios::imgui::widgets {
     template<typename TRenderHandles>
     class CameraWidget : public ImGuiWidget {
 
-        using GameWorld = helios::engine::runtime::world::GameWorld;
+        using GameWorld = helios::engine::runtime::GameWorld;
         using ViewportHandle = typename TRenderHandles::ViewportHandle;
         using CameraHandle = typename TRenderHandles::CameraHandle;
 
