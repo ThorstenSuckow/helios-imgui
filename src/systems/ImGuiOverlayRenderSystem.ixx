@@ -7,7 +7,7 @@ module;
 export module helios.imgui.systems.ImGuiOverlayRenderSystem;
 
 
-import helios.ecs.EcsWorld;
+import helios.ecs.entity.EntityWorld;
 
 
 import helios.imgui.ImGuiOverlay;
@@ -26,7 +26,7 @@ export namespace helios::imgui::systems {
      */
     class ImGuiOverlayRenderSystem {
 
-        using EcsWorld = ecs::EcsWorld;
+        using EntityWorld = ecs::entity::EntityWorld;
 
         /**
          * @brief Referenced overlay rendered by this system.
@@ -47,7 +47,7 @@ export namespace helios::imgui::systems {
          * @param ecsWorld The ECS world (unused in this system).
          * @return true if the update was successful.
          */
-        void update(EcsWorld& ecsWorld) noexcept {
+        void update(EntityWorld& ecsWorld) noexcept {
             (void)ecsWorld;
             overlay_.render();
         };

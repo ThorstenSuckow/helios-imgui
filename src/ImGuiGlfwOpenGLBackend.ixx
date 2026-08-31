@@ -15,7 +15,7 @@ export module helios.imgui.ImGuiGlfwOpenGLBackend;
 
 import helios.imgui.ImGuiBackend;
 
-import helios.ecs.EcsWorld;
+import helios.ecs.entity.EntityWorld;
 import helios.glfw.components.GLFWWindowHandleComponent;
 
 using namespace helios::glfw::components;
@@ -77,7 +77,7 @@ export namespace helios::imgui {
         /**
          * @brief Platform world that stores the GLFW window-handle component.
          */
-        ecs::EcsWorld& ecsWorld_;
+        ecs::entity::EntityWorld& ecsWorld_;
 
         /**
          * @brief Performs one-time backend initialization.
@@ -137,7 +137,7 @@ export namespace helios::imgui {
          *
          * @throws std::runtime_error if an ImGui context already exists.
          */
-        explicit ImGuiGlfwOpenGLBackend(WindowHandle window, ecs::EcsWorld& ecsWorld)
+        explicit ImGuiGlfwOpenGLBackend(WindowHandle window, ecs::entity::EntityWorld& ecsWorld)
             : windowHandle_(window), ecsWorld_(ecsWorld) {
 
             if (ImGui::GetCurrentContext()) {
