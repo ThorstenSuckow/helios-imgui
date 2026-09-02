@@ -17,6 +17,8 @@ import helios.imgui.ImGuiWidget;
 import helios.engine.core.components.DebugNameComponent;
 
 import helios.engine.runtime.GameWorld;
+import helios.ecs.entity.EntityAccessSet;
+import helios.ecs.entity.Query;
 
 import helios.engine.scene.components;
 import helios.engine.scene.types;
@@ -49,6 +51,11 @@ export namespace helios::imgui::widgets {
 
         using ViewportCameraBindingComponent =
             helios::engine::scene::components::CameraBindingComponent<ViewportHandle, TRenderHandles>;
+
+        using ViewportCameraQuery = ecs::entity::Query<
+            ecs::entity::ReadSet<ViewportCameraBindingComponent>,
+            ecs::entity::WriteSet<>
+        >;
 
         using PerspectiveCameraComponent =
             helios::engine::scene::components::PerspectiveCameraComponent<CameraHandle>;
@@ -158,8 +165,11 @@ export namespace helios::imgui::widgets {
                 return;
             }
 
-            for (auto [viewportEntity, cameraBinding] :
-                gameWorld_->template view<ViewportHandle, ViewportCameraBindingComponent>()) {
+            auto viewportCameraQuery = ViewportCameraQuery{
+                &gameWorld_->template entityManager<ViewportHandle>()
+            };
+
+            for (auto [viewportEntity, cameraBinding] : viewportCameraQuery) {
 
                 const auto viewportHandle = viewportEntity.handle();
                 const auto boundCameraHandle = cameraBinding->targetHandle();
