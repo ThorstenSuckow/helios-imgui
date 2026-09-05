@@ -18,7 +18,7 @@ import helios.engine.core.components.DebugNameComponent;
 
 import helios.engine.runtime.GameWorld;
 import helios.ecs.entity.EntityAccessSet;
-import helios.ecs.entity.Query;
+import helios.ecs.entity.query.Query;
 
 import helios.engine.scene.components;
 import helios.engine.scene.types;
@@ -52,7 +52,7 @@ export namespace helios::imgui::widgets {
         using ViewportCameraBindingComponent =
             helios::engine::scene::components::CameraBindingComponent<ViewportHandle, TRenderHandles>;
 
-        using ViewportCameraQuery = ecs::entity::Query<
+        using ViewportCameraQuery = ecs::entity::query::Query<
             ecs::entity::ReadSet<ViewportCameraBindingComponent>,
             ecs::entity::WriteSet<>
         >;
