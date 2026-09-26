@@ -99,7 +99,7 @@ export namespace helios::imgui {
                 return false;
             }
 
-            auto glfwComp = glfwWindow->template get<GLFWWindowHandleComponent<WindowHandle>>();
+            auto glfwComp = glfwWindow->template get<GLFWWindowHandleComponent>();
 
             if (!glfwComp) {
                 return false;

@@ -39,7 +39,7 @@ export namespace helios::imgui::widgets {
      * @brief ECS-driven ImGui camera editor for viewport-bound cameras.
      *
      * @details The widget discovers all viewport entities that expose
-     * `CameraBindingComponent<ViewportHandle>`, lets the user pick one camera,
+     * `CameraBindingComponent`, lets the user pick one camera,
      * and edits its transform/projection ECS components at runtime.
      */
     template<typename TRenderHandles>
@@ -50,21 +50,22 @@ export namespace helios::imgui::widgets {
         using CameraHandle = typename TRenderHandles::CameraHandle;
 
         using ViewportCameraBindingComponent =
-            helios::engine::scene::components::CameraBindingComponent<ViewportHandle, TRenderHandles>;
+            helios::engine::scene::components::CameraBindingComponent<TRenderHandles>;
 
         using ViewportCameraQuery = ecs::entity::query::Query<
+            ViewportHandle,
             ecs::entity::ReadSet<ViewportCameraBindingComponent>,
             ecs::entity::WriteSet<>
         >;
 
         using PerspectiveCameraComponent =
-            helios::engine::scene::components::PerspectiveCameraComponent<CameraHandle>;
+            helios::engine::scene::components::PerspectiveCameraComponent;
 
         using Position3DComponent =
-            helios::engine::spatial::components::Position3DComponent<CameraHandle, Local>;
+            helios::engine::spatial::components::Position3DComponent<Local>;
 
         using YawPitchRollComponent =
-            helios::engine::spatial::components::YawPitchRollComponent<CameraHandle>;
+            helios::engine::spatial::components::YawPitchRollComponent;
 
         struct ViewportCameraEntry {
             ViewportHandle viewportHandle{};
@@ -349,7 +350,7 @@ export namespace helios::imgui::widgets {
          * @brief Renders the camera editor UI and writes changes into ECS components.
          *
          * @details The UI provides:
-         * - viewport/camera selection via `CameraBindingComponent<ViewportHandle>`
+         * - viewport/camera selection via `CameraBindingComponent`
          * - editing for `Position3DComponent`
          * - first-person-style yaw/pitch/roll editing for `YawPitchRollComponent`
          * - editing for `PerspectiveCameraComponent`
