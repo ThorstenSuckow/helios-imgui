@@ -17,7 +17,7 @@ import helios.imgui.ImGuiWidget;
 import helios.engine.core.components.DebugNameComponent;
 
 import helios.engine.runtime.GameWorld;
-import helios.ecs.entity.EntityAccessSet;
+import helios.ecs.entity.QueryAccessSet;
 import helios.ecs.entity.query.Query;
 
 import helios.engine.scene.components;
