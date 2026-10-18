@@ -170,6 +170,14 @@ export namespace helios::imgui::widgets {
                         targetFpsInput_ = 0.0f;
                     }
                     ImGui::SameLine();
+                    if (ImGui::Button("1 FPS")) {
+                        framePacer_->setTargetFps(1.0f);
+                        targetFpsInput_ = 1.0f;
+                    }
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("One frame per second, e.g. for stepping through frames");
+                    }
+                    ImGui::SameLine();
                     if (ImGui::Button("30 FPS")) {
                         framePacer_->setTargetFps(30.0f);
                         targetFpsInput_ = 30.0f;
