@@ -130,11 +130,11 @@ export namespace helios::imgui::widgets {
             auto cameraEntity = gameWorld_->find(cameraHandle);
 
             auto* viewportDebugNameCmp = viewportEntity
-                ? viewportEntity->template get<DebugNameComponent<ViewportHandle>>()
+                ? viewportEntity->template get<DebugNameComponent>()
                 : nullptr;
 
             auto* cameraDebugNameCmp = cameraEntity
-                ? cameraEntity->template get<DebugNameComponent<CameraHandle>>()
+                ? cameraEntity->template get<DebugNameComponent>()
                 : nullptr;
 
             return (viewportDebugNameCmp
