@@ -315,7 +315,7 @@ export namespace helios::imgui::widgets {
                 return false;
             }
 
-            entity.setTrackedValue(camera, helios::math::vec4f{
+            entity.track(camera)->setValue(helios::math::vec4f{
                 helios::math::radians(tempFovDegrees_),
                 tempAspectRatio_,
                 tempZNear_,
@@ -332,7 +332,7 @@ export namespace helios::imgui::widgets {
                 return false;
             }
 
-            entity.setTrackedValue(yawPitchRoll, tempRotation_);
+            entity.track(yawPitchRoll)->setValue(tempRotation_);
             return true;
         }
 
@@ -526,7 +526,7 @@ export namespace helios::imgui::widgets {
 
             if (positionChanged) {
                 if (auto* position = cameraEntity.template get<Position3DComponent>()) {
-                    cameraEntity.setTrackedValue(position, tempPosition_);
+                    cameraEntity.track(position)->setValue(tempPosition_);
                 } else {
                     missingPosition = true;
                 }
@@ -546,7 +546,7 @@ export namespace helios::imgui::widgets {
             if (ImGui::Button("Reset selected camera")) {
                 if (resetSnapshot_.hasPosition) {
                     if (auto* position = cameraEntity.template get<Position3DComponent>()) {
-                        cameraEntity.setTrackedValue(position, resetSnapshot_.position);
+                        cameraEntity.track(position)->setValue(resetSnapshot_.position);
                         tempPosition_ = resetSnapshot_.position;
                     } else {
                         missingPosition = true;
@@ -560,7 +560,7 @@ export namespace helios::imgui::widgets {
 
                 if (resetSnapshot_.hasPerspective) {
                     if (auto* perspective = cameraEntity.template get<PerspectiveCameraComponent>()) {
-                        cameraEntity.setTrackedValue(perspective, helios::math::vec4f{
+                        cameraEntity.track(perspective)->setValue(helios::math::vec4f{
                             helios::math::radians(resetSnapshot_.fovYDegrees),
                             resetSnapshot_.aspectRatio,
                             resetSnapshot_.zNear,
